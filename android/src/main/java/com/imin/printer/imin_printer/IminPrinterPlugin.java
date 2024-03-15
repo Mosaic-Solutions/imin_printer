@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import android.graphics.Typeface;
 import android.content.Context;
@@ -60,12 +61,19 @@ public class IminPrinterPlugin implements FlutterPlugin, MethodCallHandler, Stre
     private IminPrintUtils.PrintConnectType connectType = IminPrintUtils.PrintConnectType.USB;
     private EventSink eventSink;
     private String[] modelArry = {"W27_Pro", "I23M01", "I23M02", "I23D01", "D4-503 Pro", "D4-504 Pro", "D4-505 Pro", "MS2-11", "MS2-12", "MS1-15"};
+    private final List<String> spiModelList = Arrays.asList(
+            "M2-203",
+            "M2-202",
+            "M2-Pro",
+            "D1-Pro"
+    );
     private String sdkVersion = "1.0.0";
     private static final String ACTION_PRITER_STATUS_CHANGE = "com.imin.printerservice.PRITER_STATUS_CHANGE";
     private static final String ACTION_POGOPIN_STATUS_CHANGE = "com.imin.printerservice.PRITER_CONNECT_STATUS_CHANGE";
     private static final String ACTION_PRITER_STATUS = "status";
     private static final String TAG = "IminPrinterPlugin";
     private BroadcastReceiver chargingStateChangeReceiver;
+    private Logger log = Logger.getLogger(this.getClass().getSimpleName());
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -77,11 +85,13 @@ public class IminPrinterPlugin implements FlutterPlugin, MethodCallHandler, Stre
             //初始化 2.0 的 SDK。
             PrinterHelper.getInstance().initPrinterService(_context);
             sdkVersion = "2.0.0";
+            log.info("Using sdkVersion 2");
         } else {
             //初始化 1.0 SDK
             iminPrintUtils = IminPrintUtils.getInstance(_context);
             String deviceModel = Utils.getInstance().getModel();
-            if (deviceModel.contains("M2-203") || deviceModel.contains("M2-202") || deviceModel.contains("M2-Pro")) {
+            log.info("deviceModel is " + deviceModel);
+            if (spiModelList.contains(deviceModel)) {
                 connectType = IminPrintUtils.PrintConnectType.SPI;
             } else {
                 connectType = IminPrintUtils.PrintConnectType.USB;
